@@ -1,18 +1,83 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+#include <GEM_u8g2.h>
+
+U8G2_ST7565_ERC12864_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 18, /* mosi=*/ 23, /* cs=*/ 5, /* dc=*/ 4, /* reset=*/ 16);
+
+// Create variables that will be editable through the menu and assign them initial values
+int number = -512;
+bool enablePrint = false;
+
+// Define spinner boundaries
+// Use brace-initialization for aggregate or provide a constructor in the type.
+GEMSpinnerBoundariesInt spinnerBoundaries{10, -1000, 1000}; // min: -1000, max: 1000, step: 10
+GEMSpinner spinner(spinnerBoundaries);
+
+// Create two menu item objects of class GEMItem, linked to number and enablePrint variables 
+GEMItem menuItemInt("Number:", number);
+GEMItem menuItemBool("Enable print:", enablePrint);
+
+// Create menu button that will trigger printData() function. It will print value of our number variable
+// to Serial monitor if enablePrint is true. We will write (define) this function later. However, we should
+// forward-declare it in order to pass to GEMItem constructor
+void printData(); // Forward declaration
+GEMItem menuItemButton("Print", printData);
+
+// Create menu page object of class GEMPage. Menu page holds menu items (GEMItem) and represents menu level.
+// Menu can have multiple menu pages (linked to each other) with multiple menu items each
+GEMPage menuPageMain("Main Menu");
+
+// Create menu object of class GEM_u8g2. Supply its constructor with reference to u8g2 object we created earlier
+GEM_u8g2 menu(u8g2, GEM_POINTER_ROW, GEM_ITEMS_COUNT_AUTO);
+// Which is equivalent to the following call (you can adjust parameters to better fit your screen if necessary):
+// GEM_u8g2 menu(u8g2, /* menuPointerType= */ GEM_POINTER_ROW, /* menuItemsPerScreen= */ GEM_ITEMS_COUNT_AUTO, /* menuItemHeight= */ 10, /* menuPageScreenTopOffset= */ 10, /* menuValuesLeftOffset= */ 86);
+
+void setupMenu() {
+  // Add menu items to menu page
+  menuPageMain.addMenuItem(menuItemInt);
+  menuPageMain.addMenuItem(menuItemBool);
+  menuPageMain.addMenuItem(menuItemButton);
+
+  // Add menu page to menu and set it as current
+  menu.setMenuPageCurrent(menuPageMain);
+}
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  // Serial communication setup
+  Serial.begin(115200);
+  pinMode(25, INPUT_PULLUP);
+  pinMode(32, INPUT_PULLUP);
+  pinMode(33, INPUT_PULLUP);
+  pinMode(27, INPUT_PULLUP);
+  pinMode(14, INPUT_PULLUP);
+  pinMode(26, INPUT_PULLUP);
+
+  // U8g2 library init. Pass pin numbers the buttons are connected to.
+  // The push-buttons should be wired with pullup resistors (so the LOW means that the button is pressed)
+  u8g2.begin(/*Select/OK=*/ 32, /*Right/Next=*/ 33, /*Left/Prev=*/ 27, /*Up=*/ 25, /*Down=*/ 14, /*Home/Cancel=*/ 26);
+  
+  u8g2.setContrast(0);
+
+  // Menu init, setup and draw
+  menu.init();
+  setupMenu();
+  menu.drawMenu();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // If menu is ready to accept button press, register it
+  if (menu.readyForKey()) {
+    menu.registerKeyPress(u8g2.getMenuEvent());
+  }
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void printData() {
+  // If enablePrint flag is set to true (checkbox on screen is checked)...
+  if (enablePrint) {
+    // ...print the number to Serial
+    Serial.print("Number is: ");
+    Serial.println(number);
+  } else {
+    Serial.println("Printing is disabled, sorry:(");
+  }
 }
