@@ -1,8 +1,8 @@
 #include <Arduino.h>
-
 #include <GEM_u8g2.h>
+#include <input.h>
 
-U8G2_ST7565_ERC12864_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 18, /* mosi=*/ 23, /* cs=*/ 5, /* dc=*/ 4, /* reset=*/ 16);
+U8G2_ST7565_ERC12864_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 18, /* mosi=*/ 4, /* cs=*/ 5, /* dc=*/ 2, /* reset=*/ 15);
 
 // Create variables that will be editable through the menu and assign them initial values
 int number = -512;
@@ -43,18 +43,16 @@ void setupMenu() {
 }
 
 void setup() {
-  // Serial communication setup
   Serial.begin(115200);
-  pinMode(25, INPUT_PULLUP);
-  pinMode(32, INPUT_PULLUP);
-  pinMode(33, INPUT_PULLUP);
-  pinMode(27, INPUT_PULLUP);
-  pinMode(14, INPUT_PULLUP);
-  pinMode(26, INPUT_PULLUP);
+  // activate pull-up resistors for all buttons; TODO: remove when UART
+  for(uint8_t i = 0; i < BUTTONS_COUNT; i++){
+    pinMode(buttonsPins[i], INPUT_PULLUP);
+    Serial.println(buttonsPins[i]);
+  }
 
   // U8g2 library init. Pass pin numbers the buttons are connected to.
   // The push-buttons should be wired with pullup resistors (so the LOW means that the button is pressed)
-  u8g2.begin(/*Select/OK=*/ 32, /*Right/Next=*/ 33, /*Left/Prev=*/ 27, /*Up=*/ 25, /*Down=*/ 14, /*Home/Cancel=*/ 26);
+  u8g2.begin();
   
   u8g2.setContrast(0);
 
@@ -65,10 +63,7 @@ void setup() {
 }
 
 void loop() {
-  // If menu is ready to accept button press, register it
-  if (menu.readyForKey()) {
-    menu.registerKeyPress(u8g2.getMenuEvent());
-  }
+  readInput(&menu);
 }
 
 void printData() {
