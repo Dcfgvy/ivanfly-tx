@@ -5,7 +5,7 @@
 // TODO change to 14 when reading from UART
 #define BUTTONS_COUNT 6
 // TODO: remove when reading from UART
-static constexpr uint8_t buttonsPins[BUTTONS_COUNT] = {25, 14, 27, 33, 32, 26};
+static constexpr uint8_t buttonsPins[BUTTONS_COUNT] = {14, 26, 25, 27, 32, 33};
 
 enum class Button : uint8_t {
   up = 0,
