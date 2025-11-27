@@ -52,9 +52,9 @@ enum class Potentiometer : uint8_t {
 struct InputState {
   bool buttonPressed[14];
   // bool buttonHeld[14];
-  bool switch2State[4]; /* 0: down, 1: up */
-  uint8_t switch3State[4]; /* 0: down, 1: middle, 2: up */
-  uint8_t potentiometerState[6]; /* range 0-255 */
+  bool switch2State[4]; /** 0: down, 1: up */
+  uint8_t switch3State[4]; /** 0: down, 1: middle, 2: up */
+  uint8_t potentiometerState[6]; /** range 0-255 */
 };
 
 extern InputState inputState;

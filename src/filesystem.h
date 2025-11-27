@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdint>
 
+#define MAX_MODELS_COUNT 50
 #define MODELS_DIR_PATH "/models"
 
 typedef std::vector<std::string> modelsList_t;
@@ -13,7 +14,7 @@ typedef std::vector<std::string> modelsList_t;
 // y = x + p/100 * (x^3 - x)
 struct ExponentAndMax{
   int8_t exponent; /** Value from -100 to 100. if negative, we just reflect the function over y=x (point a;b becomes b;a). */
-  uint8_t maxValue;
+  uint8_t maxValue {100}; /** Value 0 - 100, 100 by default */
 };
 
 struct Model{
@@ -25,7 +26,7 @@ struct Model{
   bool reversedSwitches3[4]; /** true if reversed */
 
   int8_t flightModeSwitch2; /** -1 if no fly mode switch is assigned. Only 2-state switches can be assigned. */
-  int8_t ThrottleHoldSwitch2; /** -1 if no throttle hold switch is assigned. Only 2-state switches can be assigned. */
+  int8_t throttleHoldSwitch2; /** -1 if no throttle hold switch is assigned. Only 2-state switches can be assigned. */
   ExponentAndMax flightMode1[6];
   ExponentAndMax flightMode2[6];
 
@@ -47,18 +48,20 @@ modelsList_t getModels();
 bool createModel(std::string name);
 
 /**
- * renameModel - renames a model
+ * getModel - retrieves the settings of a model
  * 
- * @name Name of a new model
+ * @name Name of the model
  * 
- * @return true if model was successfully created, false otherwise
+ * @return The success of the operation and, in case successful, settings of the model
  */
-bool getModel(std::string name);
+std::pair<bool, Model> getModel(std::string name);
 
 /**
  * renameModel - renames a model
+ * 
+ * @return true if successfully renamed, false if there is a name conflict
  */
-void renameModel(std::string oldName, std::string newName);
+bool renameModel(std::string oldName, std::string newName);
 
 /**
  * updateModel - updates the settings of a model
@@ -69,9 +72,11 @@ void renameModel(std::string oldName, std::string newName);
  * 
  * @return true if model was successfully updated, false otherwise
  */
-bool updateModel(std::string name, Model *newModel);
+bool updateModel(std::string name, Model &newModel);
 
 /**
  * removeModel - removes a model
+ * 
+ * @return true if removal was successful, false otherwise
  */
-void removeModel(std::string name);
+bool removeModel(std::string name);

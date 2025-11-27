@@ -63,7 +63,7 @@ void setup() {
     Serial.println("LittleFS Mount Failed");
     return;
   }
-  File root = LittleFS.open(MODELS_DIR_PATH);
+  File root = LittleFS.open(MODELS_DIR_PATH, "r", true);
   root.close();
 
   // set passive buzzer pin mode & play the turn-on sound
