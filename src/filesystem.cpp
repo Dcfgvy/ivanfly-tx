@@ -119,7 +119,7 @@ bool createModel(std::string name){
   if(getModels().size() >= MAX_MODELS_COUNT) return false;
 
   // assign default values
-  const Model defaultModelSettings{
+  const Model defaultModelSettings = {
     .name = name, .secretKey = "                ",
     .flightModeSwitch2 = -1, .throttleHoldSwitch2 = -1
   };
