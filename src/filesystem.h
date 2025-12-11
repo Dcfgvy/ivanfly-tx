@@ -6,8 +6,12 @@
 
 #define MAX_MODELS_COUNT 50
 #define MODELS_DIR_PATH "/models"
+#define SYSTEM_SETTINGS_PATH "/settings.json"
 
 typedef std::vector<std::string> modelsList_t;
+
+/** @return true if initialization successfull */
+bool initFilesystem();
 
 // The model name is its filename and serves as a unique identifier when working with models
 
@@ -80,3 +84,14 @@ bool updateModel(std::string name, Model &newModel);
  * @return true if removal was successful, false otherwise
  */
 bool removeModel(std::string name);
+
+struct SystemSettings{
+  std::string lastSelectedModelName;
+  bool switches2On[4]; /** true if switch is on */
+  bool switches3On[4]; /** true if switch is on */
+  bool soundEffects;
+};
+
+void updateSystemSettings(SystemSettings &newSettings);
+
+extern SystemSettings systemSettings;
