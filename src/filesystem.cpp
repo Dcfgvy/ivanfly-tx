@@ -4,6 +4,8 @@
 #include <string>
 #include <ArduinoJson.h>
 
+SystemSettings systemSettings = {};
+
 File openModelsDir(){
   File modelsDir = LittleFS.open(MODELS_DIR_PATH);
   if(!modelsDir) Serial.println(" - failed to open the models directory");
@@ -174,4 +176,83 @@ bool updateModel(std::string name, Model &newModel){
 
 bool removeModel(std::string name){
   return LittleFS.remove(getModelPath(name));
+}
+
+
+// ---------- System Settings ----------
+
+
+JsonDocument settingsToJson(const SystemSettings &settings){
+  JsonDocument doc;
+
+  doc["lastSelectedModelName"] = settings.lastSelectedModelName.c_str();
+
+  // aux switches
+  JsonArray rs2 = doc["switches2On"].to<JsonArray>();
+  for(int i = 0; i < 4; i++) rs2.add(settings.switches2On[i]);
+
+  JsonArray rs3 = doc["switches3On"].to<JsonArray>();
+  for(int i = 0; i < 4; i++) rs3.add(settings.switches3On[i]);
+
+  doc["soundEffects"] = settings.soundEffects;
+  return doc;
+}
+
+SystemSettings jsonToSettings(const JsonDocument &doc){
+  SystemSettings settings{};
+
+  settings.lastSelectedModelName = std::string(doc["lastSelectedModelName"].as<const char*>());
+
+  // aux switches
+  JsonArrayConst rs2 = doc["switches2On"].as<JsonArrayConst>();
+  for(size_t i = 0; i<rs2.size() && i<4; i++) settings.switches2On[i] = rs2[i].as<bool>();
+
+  JsonArrayConst rs3 = doc["switches3On"].as<JsonArrayConst>();
+  for(size_t i = 0; i<rs3.size() && i<4; i++) settings.switches3On[i] = rs3[i].as<bool>();
+
+  settings.soundEffects = doc["soundEffects"].as<bool>();
+  return settings;
+}
+
+bool initFilesystem(){
+  if(!LittleFS.begin()){
+    return false;
+  }
+
+  // check if all the necessary files and directories exist
+  if(!LittleFS.exists(SYSTEM_SETTINGS_PATH)){
+    SystemSettings initialSettings = {
+      .lastSelectedModelName = "",
+      .switches2On = {true, true, true, true}, .switches3On = {true, true, true, true},
+      .soundEffects = true
+    };
+    JsonDocument settingsDoc = settingsToJson(initialSettings);
+
+    File systemSettingsFile = LittleFS.open(SYSTEM_SETTINGS_PATH, "w");
+    serializeJson(settingsDoc, systemSettingsFile);
+    systemSettingsFile.close();
+
+    systemSettings = initialSettings;
+  }
+  else{
+    JsonDocument settingsDoc;
+
+    File systemSettingsFile = LittleFS.open(SYSTEM_SETTINGS_PATH, "r");
+    deserializeJson(settingsDoc, systemSettingsFile);
+    systemSettingsFile.close();
+
+    systemSettings = jsonToSettings(settingsDoc);
+  }
+
+  return true;
+}
+
+void updateSystemSettings(SystemSettings &newSettings){
+  JsonDocument settingsDoc = settingsToJson(newSettings);
+
+  File systemSettingsFile = LittleFS.open(SYSTEM_SETTINGS_PATH, "w");
+  serializeJson(settingsDoc, systemSettingsFile);
+  systemSettingsFile.close();
+
+  systemSettings = newSettings;
 }
