@@ -28,6 +28,7 @@ void setup() {
   initMenu();
 
   Serial2.setPins(19, NOT_A_PIN);
+  Serial2.begin(115200);
   initRadio();
 }
 
