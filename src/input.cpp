@@ -23,6 +23,7 @@ void registerButtonPress(GEM_u8g2* menu, uint8_t button){
 
 void readInput(GEM_u8g2* menu){
   unsigned long currentMillis = millis();
+  readSwitchesInput();
 
   // register button presses, implementation of a 10ms delay to avoid fake button presses (noise)
   if(currentMillis - lastButtonsUpdateTime >= 10){
@@ -58,4 +59,31 @@ void readInput(GEM_u8g2* menu){
   inputState.potentiometerState[static_cast<int>(Potentiometer::secondHorizontal)] = range255(map(analogRead(35), 3430, 300, 0, 255));
   inputState.potentiometerState[static_cast<int>(Potentiometer::firstVertical)] = range255(map(analogRead(36), 3200, 7, 0, 255));
   inputState.potentiometerState[static_cast<int>(Potentiometer::firstHorizontal)] = range255(map(analogRead(39), 3650, 375, 0, 255));
+}
+
+// TODO also check button presses for UART
+char lineBuf[128];
+uint8_t lineLen = 0;
+
+void readSwitchesInput(){
+  while (Serial2.available()) {
+    uint8_t c = Serial2.read();
+
+    if (c == 0x80) {
+      inputState.switch2State[0] = lineBuf[0] == '1';
+      inputState.switch2State[1] = lineBuf[1] == '1';
+      lineLen = 0;
+    }
+    else if (lineLen < LINE_MAX - 7) {
+      for(uint8_t i = 0; i < 7; i++){
+        // checing each bit
+        lineBuf[lineLen + i] = (c & static_cast<uint8_t>(1u << i)) ? '1' : '0';
+      }
+      lineLen += 7;
+    }
+    else {
+      // Overflow protection
+      lineLen = 0;
+    }
+  }
 }

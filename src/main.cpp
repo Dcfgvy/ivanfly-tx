@@ -5,6 +5,7 @@
 #include <sound.h>
 #include <filesystem.h>
 #include "navigation/navigation.h"
+#include "radio/radio.h"
 
 void setup() {
   Serial.begin(115200);
@@ -25,10 +26,22 @@ void setup() {
   if(systemSettings.soundEffects) turnOnSound();
 
   initMenu();
+
+  Serial2.setPins(19, NOT_A_PIN);
+  initRadio();
 }
 
 void loop() {
   readInput(&menu);
+
+  const uint8_t a = inputState.potentiometerState[static_cast<int>(Potentiometer::secondVertical)];
+  const uint8_t b = inputState.potentiometerState[static_cast<int>(Potentiometer::secondHorizontal)];
+  const bool c = inputState.switch2State[static_cast<int>(Switch2::A)];
+  const bool d = inputState.switch2State[static_cast<int>(Switch2::B)];
+  sendTestRadioState(a, b, c, d);
+  Serial.println(a);
+
+  delay(15);
   // Serial.println(inputState.potentiometerState[static_cast<int>(Potentiometer::secondVertical)]);
   // Serial.println(inputState.potentiometerState[static_cast<int>(Potentiometer::secondHorizontal)]);
   // Serial.println();
